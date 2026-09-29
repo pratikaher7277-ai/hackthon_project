@@ -9,19 +9,20 @@ This project combines:
 - Statistical evaluation and ranking layer
 - Real or simulated channel connectors
 - Local Ollama sentiment analysis support
-- React + Vite frontend dashboard
+- React + TypeScript + Vite frontend dashboard
 
 ## Tech Stack
 
 - Backend: Python, FastAPI, Uvicorn
 - Frontend: React, TypeScript, Vite, Tailwind CSS
-- Analytics: custom evaluators, quality gates, Bayesian-style ranking logic
+- Analytics: custom evaluators, quality gates, and ranking logic
 - AI: Ollama integration for sentiment scoring
 
 ## Repository Structure
 
 ```text
 Hackathon Project/
+├── README.md
 ├── Assests/
 │   └── omnichannel_backend/
 │       ├── omnichannel/
@@ -31,7 +32,6 @@ Hackathon Project/
 │       ├── scripts/
 │       ├── requirements.txt
 │       └── README.md
-├── README.md
 └── .git/
 ```
 
@@ -58,7 +58,7 @@ npm install
 npm run dev -- --host 0.0.0.0 --port 3000
 ```
 
-Open in the browser:
+Open the app at:
 
 - http://localhost:3000
 
@@ -71,10 +71,10 @@ npm run build
 
 ## Verified Status
 
-The project has been validated with:
+This project has been validated with:
 - Python backend tests: passing
 - Frontend production build: passing
-- Live health/API responses: successful
+- Live health and API checks: successful
 
 ## API Endpoints
 
@@ -88,4 +88,4 @@ The project has been validated with:
 
 ## Notes
 
-This repository is prepared for local development and deployment testing. The backend and frontend are connected via the configured API base and Vite proxy settings.
+This repository is prepared for local development and deployment testing. The backend and frontend are connected through the configured API base and Vite proxy settings.
