@@ -26,3 +26,13 @@ def test_report_endpoint():
 def test_report_validates_params():
     assert client().get("/api/v1/report?days=0").status_code == 422
     assert client().get("/api/v1/report?days=999").status_code == 422
+
+
+def test_dashboard_endpoints_exist():
+    c = client()
+    assert c.get("/api/v1/summary?days=7").status_code == 200
+    assert c.get("/api/v1/ranking?days=7").status_code == 200
+    assert c.get("/api/v1/chart-types").status_code == 200
+    chart = c.get("/api/v1/chart/satisfaction_by_channel?days=7")
+    assert chart.status_code == 200
+    assert chart.json()["id"] == "satisfaction_by_channel"
