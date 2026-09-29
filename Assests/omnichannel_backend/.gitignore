@@ -1,0 +1,42 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+
+# Virtual environments
+venv/
+env/
+.venv/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Test outputs
+sample_output/
+sample_output_real/
+*.svg
+!docs/diagrams/*.svg
+
+# Environment
+.env
+.env.local
+
+# Logs
+*.log
+
+# Distribution
+*.zip
+*.tar.gz
+dist/
+build/
+*.egg-info/

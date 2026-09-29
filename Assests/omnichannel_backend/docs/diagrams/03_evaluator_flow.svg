@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 730" width="760" height="730" font-family="Helvetica, Arial, sans-serif">
+<title>Evaluator decision flow</title>
+<defs><marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#475569"/></marker></defs>
+<rect width="760" height="730" fill="#ffffff"/>
+<text x="380" y="26" font-size="16" text-anchor="middle" fill="#1f2937" font-weight="bold">Part B: evaluator decision flow</text>
+<rect x="250" y="44" width="260" height="44" rx="8" fill="#dbeafe" stroke="#475569" stroke-width="1.2"/>
+<text x="380.0" y="70.0" font-size="13" text-anchor="middle" fill="#1f2937">Channel snapshots from Part A</text>
+<line x1="380" y1="88" x2="380" y2="118" stroke="#475569" stroke-width="1.6" marker-end="url(#ar)"/>
+<polygon points="380,118 505,150 380,182 255,150" fill="#fef3c7" stroke="#475569" stroke-width="1.2"/>
+<text x="380" y="154" font-size="12" text-anchor="middle" fill="#1f2937" font-weight="bold">Scan succeeded?</text>
+<line x1="505" y1="150" x2="560" y2="150" stroke="#475569" stroke-width="1.6" marker-end="url(#ar)"/>
+<text x="540" y="142" font-size="12" text-anchor="middle" fill="#475569" font-weight="bold">no</text>
+<rect x="560" y="128" width="180" height="44" rx="8" fill="#fee2e2" stroke="#475569" stroke-width="1.2"/>
+<text x="650.0" y="146.0" font-size="12" text-anchor="middle" fill="#1f2937">Mark failed,</text>
+<text x="650.0" y="162.0" font-size="12" text-anchor="middle" fill="#1f2937">exclude from ranking</text>
+<line x1="380" y1="182" x2="380" y2="222" stroke="#475569" stroke-width="1.6" marker-end="url(#ar)"/>
+<text x="396" y="208" font-size="12" text-anchor="middle" fill="#475569" font-weight="bold">yes</text>
+<rect x="250" y="222" width="260" height="52" rx="8" fill="#dbeafe" stroke="#475569" stroke-width="1.2"/>
+<text x="380.0" y="244.0" font-size="12" text-anchor="middle" fill="#1f2937">Compute checks:</text>
+<text x="380.0" y="260.0" font-size="12" text-anchor="middle" fill="#1f2937">reliability, freshness, completeness</text>
+<line x1="380" y1="274" x2="380" y2="304" stroke="#475569" stroke-width="1.6" marker-end="url(#ar)"/>
+<polygon points="380,304 505,336 380,368 255,336" fill="#fef3c7" stroke="#475569" stroke-width="1.2"/>
+<text x="380" y="340" font-size="12" text-anchor="middle" fill="#1f2937" font-weight="bold">All three gates pass?</text>
+<line x1="505" y1="336" x2="560" y2="336" stroke="#475569" stroke-width="1.6" marker-end="url(#ar)"/>
+<text x="540" y="328" font-size="12" text-anchor="middle" fill="#475569" font-weight="bold">no</text>
+<rect x="560" y="314" width="180" height="44" rx="8" fill="#fee2e2" stroke="#475569" stroke-width="1.2"/>
+<text x="650.0" y="332.0" font-size="12" text-anchor="middle" fill="#1f2937">Ineligible,</text>
+<text x="650.0" y="348.0" font-size="12" text-anchor="middle" fill="#1f2937">reasons listed</text>
+<line x1="380" y1="368" x2="380" y2="408" stroke="#475569" stroke-width="1.6" marker-end="url(#ar)"/>
+<text x="396" y="394" font-size="12" text-anchor="middle" fill="#475569" font-weight="bold">yes</text>
+<rect x="250" y="408" width="260" height="52" rx="8" fill="#dcfce7" stroke="#475569" stroke-width="1.2"/>
+<text x="380.0" y="430.0" font-size="12" text-anchor="middle" fill="#1f2937">Shrink satisfaction toward pooled</text>
+<text x="380.0" y="446.0" font-size="12" text-anchor="middle" fill="#1f2937">mean; compute 95% interval</text>
+<line x1="380" y1="460" x2="380" y2="490" stroke="#475569" stroke-width="1.6" marker-end="url(#ar)"/>
+<rect x="250" y="490" width="260" height="44" rx="8" fill="#dcfce7" stroke="#475569" stroke-width="1.2"/>
+<text x="380.0" y="508.0" font-size="12" text-anchor="middle" fill="#1f2937">Rank eligible channels by</text>
+<text x="380.0" y="524.0" font-size="12" text-anchor="middle" fill="#1f2937">adjusted satisfaction</text>
+<line x1="380" y1="534" x2="380" y2="564" stroke="#475569" stroke-width="1.6" marker-end="url(#ar)"/>
+<polygon points="380,564 505,596 380,628 255,596" fill="#fef3c7" stroke="#475569" stroke-width="1.2"/>
+<text x="380" y="600" font-size="12" text-anchor="middle" fill="#1f2937" font-weight="bold">Lead beats noise (z &gt; 1.96)?</text>
+<line x1="255" y1="596" x2="200" y2="596" stroke="#475569" stroke-width="1.6" marker-end="url(#ar)"/>
+<text x="220" y="588" font-size="12" text-anchor="middle" fill="#475569" font-weight="bold">no</text>
+<rect x="20" y="574" width="180" height="44" rx="8" fill="#fef3c7" stroke="#475569" stroke-width="1.2"/>
+<text x="110.0" y="592.0" font-size="12" text-anchor="middle" fill="#1f2937">Best channel + near-tie</text>
+<text x="110.0" y="608.0" font-size="12" text-anchor="middle" fill="#1f2937">warning</text>
+<line x1="505" y1="596" x2="560" y2="596" stroke="#475569" stroke-width="1.6" marker-end="url(#ar)"/>
+<text x="540" y="588" font-size="12" text-anchor="middle" fill="#475569" font-weight="bold">yes</text>
+<rect x="560" y="574" width="180" height="44" rx="8" fill="#dcfce7" stroke="#475569" stroke-width="1.2"/>
+<text x="650.0" y="592.0" font-size="12" text-anchor="middle" fill="#1f2937">Best channel,</text>
+<text x="650.0" y="608.0" font-size="12" text-anchor="middle" fill="#1f2937">clear lead</text>
+<polyline points="110,618 110,676 250,676" fill="none" stroke="#475569" stroke-width="1.6" marker-end="url(#ar)"/>
+<polyline points="650,618 650,676 510,676" fill="none" stroke="#475569" stroke-width="1.6" marker-end="url(#ar)"/>
+<rect x="250" y="654" width="260" height="44" rx="8" fill="#ede9fe" stroke="#475569" stroke-width="1.2"/>
+<text x="380.0" y="672.0" font-size="12" text-anchor="middle" fill="#1f2937" font-weight="bold">Report to Part C</text>
+<text x="380.0" y="688.0" font-size="12" text-anchor="middle" fill="#1f2937">(chart payload)</text>
+</svg>

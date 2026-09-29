@@ -1,0 +1,21 @@
+S1: tiny channel E is truly WORSE (effect -0.05)
+  original logic picks the true best channel : 78.7%
+  proposed evaluator picks the true best     : 98.3%
+  original logic picks tiny channel E        : 20.3%
+  proposed evaluator picks nothing           : 0.0%
+  proposed says lead is statistically real   : 53.7%
+
+S2: tiny channel E is truly BEST  (effect +0.25)
+  original logic picks the true best channel : 86.0%
+  proposed evaluator picks the true best     : 0.0%
+  original logic picks tiny channel E        : 86.0%
+  proposed evaluator picks nothing           : 0.0%
+  proposed says lead is statistically real   : 53.7%
+
+S3: tiny channel E truly average  (effect  0.00)
+  original logic picks the true best channel : 68.0%
+  proposed evaluator picks the true best     : 98.3%
+  original logic picks tiny channel E        : 31.3%
+  proposed evaluator picks nothing           : 0.0%
+  proposed says lead is statistically real   : 53.7%
+
