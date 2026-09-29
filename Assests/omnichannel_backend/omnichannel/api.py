@@ -2,14 +2,19 @@
 from __future__ import annotations
 
 import os
+from pathlib import Path
 from typing import Any, Callable, Optional, Sequence
 
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 
 from .agents import ChannelAgent
 from .models import CHANNEL_CODES, CHANNEL_LABELS, Channel
 from .pipeline import agents_from_env, run_pipeline
+
+_FRONTEND_DIST = Path(__file__).resolve().parent.parent / "frontend" / "dist"
 
 
 def _default_origins() -> list[str]:
@@ -110,6 +115,20 @@ def create_app(agent_factory: Optional[Callable[[], Sequence[ChannelAgent]]] = N
             if chart.get("id") == chart_id:
                 return chart
         raise HTTPException(status_code=404, detail="Chart not found")
+
+    if _FRONTEND_DIST.exists():
+        assets_dir = _FRONTEND_DIST / "assets"
+        if assets_dir.exists():
+            app.mount("/assets", StaticFiles(directory=str(assets_dir)), name="assets")
+
+        @app.get("/{full_path:path}", include_in_schema=False)
+        async def serve_spa(full_path: str) -> FileResponse:
+            if full_path.startswith("api/") or full_path.startswith("health"):
+                raise HTTPException(status_code=404)
+            candidate = _FRONTEND_DIST / full_path
+            if full_path and candidate.is_file():
+                return FileResponse(str(candidate))
+            return FileResponse(str(_FRONTEND_DIST / "index.html"))
 
     return app
 

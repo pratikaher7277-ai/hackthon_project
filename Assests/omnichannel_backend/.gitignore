@@ -37,6 +37,12 @@ sample_output_real/
 # Distribution
 *.zip
 *.tar.gz
-dist/
+sample_output/
 build/
 *.egg-info/
+
+# Node
+node_modules/
+
+# Vite cache
+frontend/.vite/
