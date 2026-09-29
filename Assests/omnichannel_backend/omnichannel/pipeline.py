@@ -26,7 +26,7 @@ async def run_pipeline(agents: Sequence[ChannelAgent], *, days: int = 14, bucket
     now = now or datetime.now(timezone.utc)
     since = now - timedelta(days=days)
     snapshots = await scan_all(agents, since, now)                       # Part A
-    report = evaluate(snapshots, now=now, window_start=since, config=config)  # Part B
+    report = evaluate(snapshots, now=now, window_start=since, config=config, bucket_days=bucket_days)  # Part B
     dates, trend = daily_trend(snapshots, since, now, bucket_days)       # Part C
     payload = build_payload(report, dates, trend)
     return PipelineResult(snapshots, report, payload)

@@ -63,6 +63,11 @@ class ChannelEvaluation:
     reasons: list[str]
     rank: Optional[int] = None
     like_for_like_effect: Optional[float] = None  # 0..1 units, relative to same customers
+    # Enhanced fields
+    sample_size_category: str = ""  # "small", "medium", "large"
+    confidence_level: float = 0.95
+    trend_direction: Optional[str] = None  # "improving", "declining", "stable"
+    statistical_power: Optional[float] = None
 
 
 @dataclass
@@ -80,6 +85,50 @@ class Report:
 
 def _clip01(x: float) -> float:
     return max(0.0, min(1.0, x))
+
+
+def _sample_size_category(k: int, min_samples: int) -> str:
+    """Categorize sample size for interpretation."""
+    if k < min_samples * 0.5:
+        return "small"
+    elif k < min_samples * 2:
+        return "medium"
+    else:
+        return "large"
+
+
+def _statistical_power(k: int, effect_size: float, alpha: float = 0.05) -> float:
+    """Approximate statistical power for detecting an effect."""
+    if k < 2 or effect_size <= 0:
+        return 0.0
+    # Simplified power calculation using normal approximation
+    z_alpha = 1.96  # for alpha=0.05 two-tailed
+    z_beta = (effect_size * math.sqrt(k)) - z_alpha
+    return _clip01(0.5 + 0.5 * math.erf(z_beta / math.sqrt(2)))
+
+
+def _trend_direction(bucket_means: list[Optional[float]]) -> Optional[str]:
+    """Determine trend direction from bucketed means."""
+    valid = [(i, m) for i, m in enumerate(bucket_means) if m is not None]
+    if len(valid) < 3:
+        return None
+    # Simple linear regression slope
+    x = [i for i, _ in valid]
+    y = [m for _, m in valid]
+    n = len(x)
+    x_mean = sum(x) / n
+    y_mean = sum(y) / n
+    numerator = sum((x[i] - x_mean) * (y[i] - y_mean) for i in range(n))
+    denominator = sum((x[i] - x_mean) ** 2 for i in range(n))
+    if denominator == 0:
+        return "stable"
+    slope = numerator / denominator
+    if slope > 0.005:
+        return "improving"
+    elif slope < -0.005:
+        return "declining"
+    else:
+        return "stable"
 
 
 def naive_best_channel(snapshots: Sequence[ChannelSnapshot]) -> Optional[Channel]:
@@ -113,13 +162,18 @@ def _like_for_like(snapshots: Sequence[ChannelSnapshot], cfg: EvalConfig) -> dic
 
 
 def evaluate(snapshots: Sequence[ChannelSnapshot], *, now: datetime,
-             window_start: datetime, config: Optional[EvalConfig] = None) -> Report:
+             window_start: datetime, config: Optional[EvalConfig] = None,
+             bucket_days: int = 1) -> Report:
     cfg = config or EvalConfig()
     ok_vals = [i.satisfaction for s in snapshots if s.ok
                for i in s.interactions if i.satisfaction is not None]
     pooled = statistics.fmean(ok_vals) if ok_vals else None
     pooled_sd = statistics.stdev(ok_vals) if len(ok_vals) >= 2 else 0.25
     lfl = _like_for_like(snapshots, cfg)
+    
+    # Get trend data for trend_direction
+    _, trend_data = daily_trend(snapshots, window_start, now, bucket_days)
+    
     notes: list[str] = []
     evals: list[ChannelEvaluation] = []
     ses: dict[Channel, float] = {}
@@ -163,10 +217,24 @@ def evaluate(snapshots: Sequence[ChannelSnapshot], *, now: datetime,
         if freshness < cfg.min_freshness:
             reasons.append(f"data too stale (freshness {freshness:.0%})")
 
+        # Enhanced fields
+        sample_cat = _sample_size_category(k, cfg.min_samples)
+        trend = None
+        if s.channel in trend_data:
+            trend = _trend_direction([m for m, _ in trend_data[s.channel]])
+        power = None
+        if k >= 2 and pooled is not None and raw is not None:
+            effect_size = abs(raw - pooled)
+            power = _statistical_power(k, effect_size)
+
         evals.append(ChannelEvaluation(
             s.channel, "ok", n, k, raw, adjusted, ci_low, ci_high, reliability, freshness,
             completeness, quality, eligible=not reasons, reasons=reasons,
-            like_for_like_effect=lfl.get(s.channel)))
+            like_for_like_effect=lfl.get(s.channel),
+            sample_size_category=sample_cat,
+            confidence_level=0.95,
+            trend_direction=trend,
+            statistical_power=power))
 
     eligible = sorted((e for e in evals if e.eligible and e.adjusted_mean is not None),
                       key=lambda e: e.adjusted_mean, reverse=True)
@@ -217,3 +285,69 @@ def daily_trend(snapshots: Sequence[ChannelSnapshot], window_start: datetime,
                 buckets[idx].append(i.satisfaction)
         out[s.channel] = [(statistics.fmean(b) if b else None, len(b)) for b in buckets]
     return starts, out
+
+
+def format_ranking(report: Report) -> str:
+    """Format a human-readable ranking table."""
+    lines = []
+    lines.append("=" * 80)
+    lines.append("CHANNEL SATISFACTION RANKING")
+    lines.append("=" * 80)
+    lines.append(f"{'Rank':>4} {'Channel':<18} {'n':>5} {'k':>5} {'Raw%':>7} {'Adj%':>7} {'CI (95%)':>15} {'Quality':>7} {'Trend':>10} {'Power':>6} {'Status'}")
+    lines.append("-" * 80)
+    
+    for e in sorted(report.channels, key=lambda x: (x.rank or 999, x.channel.value)):
+        rank_str = str(e.rank) if e.rank else "—"
+        raw_str = f"{e.raw_mean*100:.1f}" if e.raw_mean is not None else "N/A"
+        adj_str = f"{e.adjusted_mean*100:.1f}" if e.adjusted_mean is not None else "N/A"
+        ci_str = f"[{e.ci_low*100:.1f}, {e.ci_high*100:.1f}]" if e.ci_low is not None else "N/A"
+        quality_str = f"{e.quality_score*100:.1f}%"
+        trend_str = e.trend_direction or "N/A"
+        power_str = f"{e.statistical_power*100:.0f}%" if e.statistical_power is not None else "N/A"
+        status = "✅ ELIGIBLE" if e.eligible else f"❌ {e.reasons[0] if e.reasons else 'INELIGIBLE'}"
+        
+        lines.append(f"{rank_str:>4} {e.channel.value:<18} {e.responses:>5} {e.scored:>5} {raw_str:>7} {adj_str:>7} {ci_str:>15} {quality_str:>7} {trend_str:>10} {power_str:>6} {status}")
+    
+    lines.append("-" * 80)
+    lines.append(f"Best Channel: {report.best_channel.value if report.best_channel else 'None'}")
+    lines.append(f"Significant Lead: {'Yes' if report.significant_lead else 'No' if report.significant_lead is not None else 'N/A'}")
+    lines.append(f"Channel Gap: {report.channel_gap_points:.1f} pts" if report.channel_gap_points else "Channel Gap: N/A")
+    lines.append(f"Pooled Satisfaction: {report.pooled_mean*100:.1f}%" if report.pooled_mean else "Pooled Satisfaction: N/A")
+    
+    if report.notes:
+        lines.append("\nNotes:")
+        for note in report.notes:
+            lines.append(f"  • {note}")
+    
+    lines.append("=" * 80)
+    return "\n".join(lines)
+
+
+def get_ranking_data(report: Report) -> list[dict]:
+    """Get ranking as structured data for API/frontend."""
+    result = []
+    for e in sorted(report.channels, key=lambda x: (x.rank or 999, x.channel.value)):
+        result.append({
+            "rank": e.rank,
+            "channel": e.channel.value,
+            "channel_code": e.channel.value[0].upper(),  # A, B, C, D, E
+            "label": e.channel.value.replace("_", " ").title(),
+            "responses": e.responses,
+            "scored_responses": e.scored,
+            "raw_satisfaction_pct": round(e.raw_mean * 100, 1) if e.raw_mean else None,
+            "adjusted_satisfaction_pct": round(e.adjusted_mean * 100, 1) if e.adjusted_mean else None,
+            "ci_low_pct": round(e.ci_low * 100, 1) if e.ci_low else None,
+            "ci_high_pct": round(e.ci_high * 100, 1) if e.ci_high else None,
+            "reliability_pct": round(e.reliability * 100, 1),
+            "freshness_pct": round(e.freshness * 100, 1),
+            "completeness_pct": round(e.completeness * 100, 1),
+            "quality_score_pct": round(e.quality_score * 100, 1),
+            "sample_size_category": e.sample_size_category,
+            "trend_direction": e.trend_direction,
+            "statistical_power_pct": round(e.statistical_power * 100, 1) if e.statistical_power else None,
+            "like_for_like_effect_pts": round(e.like_for_like_effect * 100, 1) if e.like_for_like_effect else None,
+            "eligible": e.eligible,
+            "reasons": e.reasons,
+            "status": e.status,
+        })
+    return result
